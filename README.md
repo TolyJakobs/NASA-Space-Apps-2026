@@ -79,3 +79,9 @@ before starting work.
 
 Create a feature branch, assign yourself the relevant
 GitHub issue, and submit a pull request for review.
+
+## Scientific Sources and Assumptions
+
+See [Sources and Assumptions](docs/SOURCES_AND_ASSUMPTIONS.md)
+for NASA references, scientific explanations, and illustrative gameplay values used in the project.
+
