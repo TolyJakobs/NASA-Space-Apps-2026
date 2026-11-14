@@ -1,7 +1,7 @@
 # Scientific Instrument Catalog Specification
 
 **Issue:** #13 (`M2-02`)  
-**Status:** Catalog specification pending M1-03 shared domain interfaces  
+**Status:** Catalog specification pending completion of M1-03 shared domain interfaces
 **Scope:** Two static scientific instrument choices for the single-player wildfire-monitoring mission. This document defines gameplay content only; it does not create a TypeScript contract, catalog implementation, UI, or simulation logic.
 
 ## Gameplay assumptions
@@ -21,7 +21,7 @@ Both entries use unique, stable IDs and finite nonnegative numeric values. The t
 
 ## Intended integration after M1-03
 
-`src/domain/types.ts` is currently absent, so the exact `Component` field names and export pattern are not yet agreed. This catalog must be implemented in `src/data/instruments.ts` only after M1-03 supplies the finalized `Component` contract.
+`src/domain/types.ts` now defines `Component`, but its current contract contains only an ID, name, type, mass, and optional description. It does not yet define agreed fields for active power, cost, science-data generation, or science tags. This catalog must be implemented in `src/data/instruments.ts` only after those required `Component` fields are agreed and added by the M1-03 owner.
 
 At that point, each entry should use the exact agreed `Component` interface and existing field names to represent these concepts:
 
