@@ -7,6 +7,22 @@ export interface Component {
   description?: string; // Optional description.
 }
 
+/** A payload that consumes power to collect mission science data. */
+export interface ScientificInstrument extends Component {
+  type: 'scientific-instrument';
+  costUsd: number; // Cost in USD.
+  powerConsumptionW: number; // Active power consumed in watts (W), not generated power.
+  scienceDataMbPerDay: number; // Scientific data generated per day in MB/day.
+  scienceTags: string[]; // Mission science categories supported by this instrument.
+}
+
+/** A component that generates nominal electrical power. */
+export interface SolarPanel extends Component {
+  type: 'solar-panel';
+  costUsd: number; // Cost in USD.
+  powerGenerationW: number; // Nominal power generated in watts (W), not stored energy in Wh.
+}
+
 export interface MissionDefinition {
   id: string; // Required: mission ID.
   name: string; // Required: mission name.
