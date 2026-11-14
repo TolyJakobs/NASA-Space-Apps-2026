@@ -21,3 +21,8 @@ target/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Node.js / Vite
+node_modules/
+dist/
+.vite/

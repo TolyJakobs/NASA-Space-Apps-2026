@@ -1,0 +1,26 @@
+:root {
+  color: #f8fafc;
+  background: #0f172a;
+  font-family: system-ui, sans-serif;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  display: grid;
+  place-items: center;
+}
+
+main {
+  padding: 2rem;
+  text-align: center;
+}
+
+h1 {
+  margin: 0;
+}
+
+p {
+  color: #cbd5e1;
+}
