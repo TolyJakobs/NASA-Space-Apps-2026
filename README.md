@@ -79,5 +79,3 @@ before starting work.
 
 Create a feature branch, assign yourself the relevant
 GitHub issue, and submit a pull request for review.
-
-
