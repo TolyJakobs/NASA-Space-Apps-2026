@@ -53,11 +53,11 @@ Individual fields may impose stricter rules. For example, a quantity representin
 
 Each catalog component must have a unique, stable string ID.
 
-Component references must resolve to an existing catalog entry.
+Every `MissionConfiguration.selectedComponentIds` value must resolve to an existing catalog entry. Unknown component IDs are invalid and must be rejected.
 
-Unknown component IDs are invalid and must not be silently accepted.
+Repeated component IDs represent multiple copies of the same catalog component. For example, `['camera-a', 'camera-a']` selects two copies of `camera-a`.
 
-**Duplicate selection policy:** Pending agreement with M1-03. Recommended approach: represent multiple copies using a unique component ID and a positive integer quantity rather than repeated IDs.
+All numeric values governed by these conventions must be finite and nonnegative. Implementations must reject negative numbers, `NaN`, `Infinity`, and `-Infinity` using the shared `isFiniteNonnegative` helper in `src/engine/numericValidation.ts`.
 
 ## 4. Calculations
 
