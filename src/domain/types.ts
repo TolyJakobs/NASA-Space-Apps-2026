@@ -16,12 +16,20 @@ export interface MissionDefinition {
   launchOptionIds: string[]; // IDs of launch options.
 }
 
+
 export interface OrbitOption {
   id: string;
   name: string;
   altitudeKm: number; // Orbit altitude in kilometers.
   inclinationDeg: number; // Orbit inclination in degrees.
+  periodMinutes: number; // Time for one complete orbit.
+  sunlightFraction: number; // Fraction of modeled time in sunlight (0-1).
+  contactModifier: number; // Simplified communication gameplay multiplier.
+  scienceModifier: number; // Simplified science gameplay multiplier.
+  description: string; // Educational explanation of the orbit.
 }
+
+
 
 export interface LaunchOption {
   id: string;
