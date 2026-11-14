@@ -1,7 +1,8 @@
 # Solar Panel Catalog Specification
 
 **Issue:** #14 (`M2-03`)  
-**Status:** Catalog specification pending completion of M1-03 shared domain interfaces  
+**Status:** Implemented in `src/data/solarPanels.ts`
+
 **Scope:** Two static power-generation choices for the single-player wildfire-monitoring mission. This document does not create a TypeScript contract, catalog implementation, UI, or energy calculation.
 
 ## Gameplay assumptions
@@ -21,16 +22,14 @@ Both IDs are unique and stable. Every numeric value is finite and nonnegative. T
 
 The high-output array's 300 W rating is compatible with the wildfire mission's illustrative 330 W available-power reference only when the future power model accounts for its other agreed generation sources or revises the reference design. This catalog does not claim that the panel alone satisfies that total; it intentionally leaves the engineering calculation to the engine.
 
-## Intended integration after M1-03
+## Implemented contract
 
-The current `Component` interface in `src/domain/types.ts` has no agreed fields for nominal generated power or cost. It is therefore incomplete for this catalog, even though it supports the shared ID, name, type, mass, and description concepts.
+`src/domain/types.ts` defines `SolarPanel`, a specialized `Component` with the exact fields used by this catalog:
 
-Once M1-03's owner finalizes the contract, implement `src/data/solarPanels.ts` using the exact `Component` field names to represent:
+- `costUsd` is component cost in USD.
+- `powerGenerationW` is nominal power generated in W. It is neither battery energy in Wh nor an average orbital power calculation.
 
-- Stable ID, human-readable name, appropriate agreed component category, description, and mass in kg.
-- Nominal generated power in W and cost in USD.
-
-The data module must import the finalized domain type only, follow the established catalog export pattern, and contain no React state, battery capacity in Wh, or energy calculation logic. Do not add a parallel interface, `any`, or unagreed fields to force an early typed implementation.
+`solarPanels` is a readonly catalog that uses `satisfies readonly SolarPanel[]` for compile-time conformance. It imports only the domain type and contains no React state, battery capacity in Wh, or energy calculation logic.
 
 ## MVP boundaries
 

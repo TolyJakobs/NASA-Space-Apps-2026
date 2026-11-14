@@ -1,7 +1,8 @@
 # Scientific Instrument Catalog Specification
 
 **Issue:** #13 (`M2-02`)  
-**Status:** Catalog specification pending completion of M1-03 shared domain interfaces
+**Status:** Implemented in `src/data/instruments.ts`
+
 **Scope:** Two static scientific instrument choices for the single-player wildfire-monitoring mission. This document defines gameplay content only; it does not create a TypeScript contract, catalog implementation, UI, or simulation logic.
 
 ## Gameplay assumptions
@@ -19,17 +20,16 @@ The two instruments are designed to be selected together in the reference missio
 
 Both entries use unique, stable IDs and finite nonnegative numeric values. The thermal sensor deliberately returns more data at greater mass, active-power demand, and cost, creating a clear trade-off for beginners.
 
-## Intended integration after M1-03
+## Implemented contract
 
-`src/domain/types.ts` now defines `Component`, but its current contract contains only an ID, name, type, mass, and optional description. It does not yet define agreed fields for active power, cost, science-data generation, or science tags. This catalog must be implemented in `src/data/instruments.ts` only after those required `Component` fields are agreed and added by the M1-03 owner.
+`src/domain/types.ts` defines `ScientificInstrument`, a specialized `Component` with the exact fields used by this catalog:
 
-At that point, each entry should use the exact agreed `Component` interface and existing field names to represent these concepts:
+- `costUsd` is component cost in USD.
+- `powerConsumptionW` is active power consumed in W; it is not generated power.
+- `scienceDataMbPerDay` is daily scientific data generation in MB/day.
+- `scienceTags` includes `wildfire-monitoring` for both instruments.
 
-- Stable component ID, human-readable name, and plain-language description.
-- Mass in kg, active power consumption in W, cost in USD, and science-data generation in MB/day.
-- A science-tag collection containing `wildfire-monitoring`.
-
-The data module should import only the approved domain type, contain no React/UI state or calculations, and export the catalog using the same convention as any merged component catalogs. No `any`, substitute interface, parallel type, or unagreed field name should be introduced to force the integration early.
+`scientificInstruments` is a readonly catalog that uses `satisfies readonly ScientificInstrument[]` for compile-time conformance. It imports only the domain type and contains no React/UI state or calculations.
 
 ## MVP boundaries
 
