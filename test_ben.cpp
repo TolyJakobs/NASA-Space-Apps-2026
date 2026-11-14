@@ -1,0 +1,2 @@
+
+int the_meaning_of_life = 42;
