@@ -52,11 +52,12 @@ export interface LaunchOption {
   name: string;
   vehicleName: string;
   maxPayloadKg: number; // Maximum payload mass in kilograms.
-  cost?: number; // Optional cost; currency must be agreed upon.
+  costUsd?: number; // Optional cost in USD.
 }
 
 export interface MissionConfiguration {
   missionId: string;
+  // Each ID must resolve to a catalog component; repeated IDs represent multiple copies.
   selectedComponentIds: string[];
   selectedOrbitId: string;
   selectedLaunchOptionId: string;

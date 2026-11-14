@@ -50,8 +50,11 @@ npm run preview
 
 ### Testing
 
-Automated tests are pending completion of M1-05.
-Do not run `npm test` until the test script is available.
+Run the automated test suite:
+
+```bash
+npm test
+```
 
 ## Project Architecture
 
