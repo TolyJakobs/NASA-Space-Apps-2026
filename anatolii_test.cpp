@@ -1,10 +1,2 @@
-#include <iostream>
-using namespace std;
+// let variable:number = 10;
 
-int main () {
-
-    int a = 5;
-    cout << a;
-
-    return 0;
-}
