@@ -4,8 +4,10 @@ import type { Component, LaunchOption, MissionConfiguration } from '../domain/ty
 import {
   ComponentMassCalculationError,
   MissionCostCalculationError,
+  SpacecraftPowerDrawCalculationError,
   calculateTotalSpacecraftMassKg,
   calculateTotalMissionCostUsd,
+  calculateTotalSpacecraftPowerDrawW,
 } from './resources'
 
 const baseConfiguration: MissionConfiguration = {
@@ -36,6 +38,37 @@ const launchOptions: readonly LaunchOption[] = [
     maxPayloadKg: 150,
     costUsd: 5_800_000,
     supportedOrbitIds: ['orbit.test.v1'],
+  },
+]
+
+type PowerComponent = Component & { powerConsumptionW?: number }
+
+const powerComponents: readonly PowerComponent[] = [
+  {
+    id: 'instrument.camera.v1',
+    name: 'Camera',
+    type: 'scientific-instrument',
+    massKg: 18,
+    powerConsumptionW: 55,
+  },
+  {
+    id: 'communications.radio.v1',
+    name: 'Radio',
+    type: 'communications',
+    massKg: 6,
+    powerConsumptionW: 25,
+  },
+  {
+    id: 'solar-panel.array.v1',
+    name: 'Solar Array',
+    type: 'solar-panel',
+    massKg: 12,
+  },
+  {
+    id: 'battery.small.v1',
+    name: 'Battery',
+    type: 'battery',
+    massKg: 2,
   },
 ]
 
@@ -281,5 +314,194 @@ describe('calculateTotalMissionCostUsd', () => {
     expect(configuration).toEqual(configurationBefore)
     expect(costedComponents).toEqual(componentsBefore)
     expect(launchOptions).toEqual(launchesBefore)
+  })
+})
+
+describe('calculateTotalSpacecraftPowerDrawW', () => {
+  it('returns zero for an empty component selection', () => {
+    expect(calculateTotalSpacecraftPowerDrawW(baseConfiguration, powerComponents)).toBe(0)
+  })
+
+  it('returns the active draw of one selected consuming component', () => {
+    expect(
+      calculateTotalSpacecraftPowerDrawW(
+        configurationWith(['instrument.camera.v1']),
+        powerComponents,
+      ),
+    ).toBe(55)
+  })
+
+  it('sums the active draw of multiple selected consuming components', () => {
+    expect(
+      calculateTotalSpacecraftPowerDrawW(
+        configurationWith(['instrument.camera.v1', 'communications.radio.v1']),
+        powerComponents,
+      ),
+    ).toBe(80)
+  })
+
+  it('counts each repeated consuming component ID as another active load', () => {
+    expect(
+      calculateTotalSpacecraftPowerDrawW(
+        configurationWith(['communications.radio.v1', 'communications.radio.v1']),
+        powerComponents,
+      ),
+    ).toBe(50)
+  })
+
+  it('does not add solar panel generation to active power draw', () => {
+    expect(
+      calculateTotalSpacecraftPowerDrawW(
+        configurationWith(['solar-panel.array.v1']),
+        powerComponents,
+      ),
+    ).toBe(0)
+  })
+
+  it('does not add battery capacity to active power draw', () => {
+    expect(
+      calculateTotalSpacecraftPowerDrawW(
+        configurationWith(['battery.small.v1']),
+        powerComponents,
+      ),
+    ).toBe(0)
+  })
+
+  it('adds only active loads in a mixed selection', () => {
+    expect(
+      calculateTotalSpacecraftPowerDrawW(
+        configurationWith([
+          'instrument.camera.v1',
+          'solar-panel.array.v1',
+          'battery.small.v1',
+          'communications.radio.v1',
+        ]),
+        powerComponents,
+      ),
+    ).toBe(80)
+  })
+
+  it('throws an actionable structured error for an unknown component ID', () => {
+    expect(() =>
+      calculateTotalSpacecraftPowerDrawW(
+        configurationWith(['component.unknown.v1']),
+        powerComponents,
+      ),
+    ).toThrow(SpacecraftPowerDrawCalculationError)
+
+    try {
+      calculateTotalSpacecraftPowerDrawW(
+        configurationWith(['component.unknown.v1']),
+        powerComponents,
+      )
+    } catch (error) {
+      expect(error).toMatchObject({
+        code: 'unknown-component-id',
+        componentId: 'component.unknown.v1',
+      })
+    }
+  })
+
+  it.each([Number.NaN, Number.POSITIVE_INFINITY, -1])(
+    'throws an actionable structured error for invalid consuming power %s',
+    (powerConsumptionW) => {
+      const invalidComponents: readonly PowerComponent[] = [
+        {
+          id: 'instrument.invalid.v1',
+          name: 'Invalid Instrument',
+          type: 'scientific-instrument',
+          massKg: 1,
+          powerConsumptionW,
+        },
+      ]
+
+      expect(() =>
+        calculateTotalSpacecraftPowerDrawW(
+          configurationWith(['instrument.invalid.v1']),
+          invalidComponents,
+        ),
+      ).toThrow(SpacecraftPowerDrawCalculationError)
+
+      try {
+        calculateTotalSpacecraftPowerDrawW(
+          configurationWith(['instrument.invalid.v1']),
+          invalidComponents,
+        )
+      } catch (error) {
+        expect(error).toMatchObject({
+          code: 'invalid-component-power-consumption',
+          componentId: 'instrument.invalid.v1',
+        })
+      }
+    },
+  )
+
+  it('rejects a power-consuming component with a missing active power field', () => {
+    const invalidComponents: readonly PowerComponent[] = [
+      {
+        id: 'communications.invalid.v1',
+        name: 'Invalid Radio',
+        type: 'communications',
+        massKg: 1,
+      },
+    ]
+
+    expect(() =>
+      calculateTotalSpacecraftPowerDrawW(
+        configurationWith(['communications.invalid.v1']),
+        invalidComponents,
+      ),
+    ).toThrow(SpacecraftPowerDrawCalculationError)
+
+    try {
+      calculateTotalSpacecraftPowerDrawW(
+        configurationWith(['communications.invalid.v1']),
+        invalidComponents,
+      )
+    } catch (error) {
+      expect(error).toMatchObject({
+        code: 'invalid-component-power-consumption',
+        componentId: 'communications.invalid.v1',
+      })
+    }
+  })
+
+  it('rejects a non-finite total caused by arithmetic overflow', () => {
+    const expensiveComponents: readonly PowerComponent[] = [
+      {
+        id: 'instrument.expensive.v1',
+        name: 'Power-Hungry Instrument',
+        type: 'scientific-instrument',
+        massKg: 1,
+        powerConsumptionW: Number.MAX_VALUE,
+      },
+    ]
+
+    expect(() =>
+      calculateTotalSpacecraftPowerDrawW(
+        configurationWith(['instrument.expensive.v1', 'instrument.expensive.v1']),
+        expensiveComponents,
+      ),
+    ).toThrow(SpacecraftPowerDrawCalculationError)
+
+    try {
+      calculateTotalSpacecraftPowerDrawW(
+        configurationWith(['instrument.expensive.v1', 'instrument.expensive.v1']),
+        expensiveComponents,
+      )
+    } catch (error) {
+      expect(error).toMatchObject({ code: 'non-finite-total-power-draw' })
+    }
+  })
+
+  it('returns the same result without mutating any input', () => {
+    const configuration = configurationWith(['instrument.camera.v1', 'communications.radio.v1'])
+    const configurationBefore = structuredClone(configuration)
+    const componentsBefore = structuredClone(powerComponents)
+
+    expect(calculateTotalSpacecraftPowerDrawW(configuration, powerComponents)).toBe(80)
+    expect(calculateTotalSpacecraftPowerDrawW(configuration, powerComponents)).toBe(80)
+    expect(configuration).toEqual(configurationBefore)
+    expect(powerComponents).toEqual(componentsBefore)
   })
 })

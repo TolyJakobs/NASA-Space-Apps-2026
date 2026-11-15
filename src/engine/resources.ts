@@ -52,6 +52,28 @@ export class MissionCostCalculationError extends Error {
   }
 }
 
+export type SpacecraftPowerDrawCalculationErrorCode =
+  | 'unknown-component-id'
+  | 'invalid-component-power-consumption'
+  | 'non-finite-total-power-draw'
+
+/** A structured failure returned when active spacecraft power draw cannot be calculated safely. */
+export class SpacecraftPowerDrawCalculationError extends Error {
+  constructor(
+    public readonly code: SpacecraftPowerDrawCalculationErrorCode,
+    public readonly componentId?: string,
+  ) {
+    const messages: Record<SpacecraftPowerDrawCalculationErrorCode, string> = {
+      'unknown-component-id': `Selected component ID "${componentId}" does not exist in the available component catalogs.`,
+      'invalid-component-power-consumption': `Selected power-consuming component "${componentId}" has an invalid powerConsumptionW value; power consumption must be finite and nonnegative.`,
+      'non-finite-total-power-draw': 'Spacecraft active power draw total is not finite after adding selected loads.',
+    }
+
+    super(messages[code])
+    this.name = 'SpacecraftPowerDrawCalculationError'
+  }
+}
+
 /**
  * Calculates selected spacecraft component mass in kilograms.
  *
@@ -129,4 +151,48 @@ export function calculateTotalMissionCostUsd(
   }
 
   return totalMissionCostUsd
+}
+
+/**
+ * Calculates selected components' active electrical consumption in watts.
+ *
+ * Scientific instruments and communications equipment require active power
+ * consumption values. Solar panels and batteries are non-consuming under the
+ * current model, so neither generation nor stored energy contributes to W.
+ */
+export function calculateTotalSpacecraftPowerDrawW(
+  configuration: MissionConfiguration,
+  availableComponents: readonly Component[],
+): number {
+  let totalPowerDrawW = 0
+
+  for (const componentId of configuration.selectedComponentIds) {
+    const component = availableComponents.find((candidate) => candidate.id === componentId)
+
+    if (!component) {
+      throw new SpacecraftPowerDrawCalculationError('unknown-component-id', componentId)
+    }
+
+    if (component.type !== 'scientific-instrument' && component.type !== 'communications') {
+      continue
+    }
+
+    const powerConsumptionW = (component as Component & { powerConsumptionW?: unknown })
+      .powerConsumptionW
+
+    if (!isFiniteNonnegative(powerConsumptionW)) {
+      throw new SpacecraftPowerDrawCalculationError(
+        'invalid-component-power-consumption',
+        componentId,
+      )
+    }
+
+    totalPowerDrawW += powerConsumptionW
+
+    if (!Number.isFinite(totalPowerDrawW)) {
+      throw new SpacecraftPowerDrawCalculationError('non-finite-total-power-draw')
+    }
+  }
+
+  return totalPowerDrawW
 }
