@@ -1,52 +1,15 @@
+import type { Battery } from '../domain/types'
 
-export interface Battery {
-  id: string;
-  name: string;
-  capacityWh: number;
-  massKg: number;
-  costUsd: number;
-  description: string;
-}
-
-export const batteries: Battery[] = [
+/** Illustrative gameplay values, not verified spacecraft battery specifications. */
+export const batteries = [
   {
-    id: "small-battery",
-    name: "Small Battery",
-    capacityWh: 250,
-    massKg: 2,
-    costUsd: 500,
-    description:
-      "A lightweight and affordable battery with lower energy storage capacity.",
+    id: 'small-battery', name: 'Small Battery', type: 'battery',
+    description: 'A lightweight, lower-cost battery with modest stored energy.',
+    capacityWh: 250, massKg: 2, costUsd: 500,
   },
   {
-    id: "large-battery",
-    name: "Large Battery",
-    capacityWh: 500,
-    massKg: 5,
-    costUsd: 900,
-    description:
-      "A high-capacity battery that stores more energy but adds more mass and cost.",
+    id: 'large-battery', name: 'Large Battery', type: 'battery',
+    description: 'A higher-capacity battery that adds mass and cost for more stored energy.',
+    capacityWh: 500, massKg: 5, costUsd: 900,
   },
-];
-
-export const batteryTradeOffs = {
-  "small-battery": {
-    advantages: [
-      "Lower mass",
-      "Lower cost",
-    ],
-    disadvantages: [
-      "Lower energy storage capacity",
-    ],
-  },
-
-  "large-battery": {
-    advantages: [
-      "Higher energy storage capacity",
-    ],
-    disadvantages: [
-      "Higher mass",
-      "Higher cost",
-    ],
-  },
-};
+] satisfies readonly Battery[]

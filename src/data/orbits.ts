@@ -1,10 +1,11 @@
 
-import type { OrbitOption } from "../domain/types";
+import type { OrbitOption } from '../domain/types'
 
-export const orbits: OrbitOption[] = [
+/** All values are illustrative gameplay assumptions, not precise orbital predictions. */
+export const orbits = [
   {
-    id: "low-earth-orbit",
-    name: "Low Earth Orbit (LEO)",
+    id: 'orbit.low-earth-orbit.v1',
+    name: 'Low Earth Orbit (LEO)',
     altitudeKm: 400,
     inclinationDeg: 51.6,
     periodMinutes: 92,
@@ -12,33 +13,30 @@ export const orbits: OrbitOption[] = [
     contactModifier: 1.2,
     scienceModifier: 1.0,
     description:
-      "A low-altitude orbit provides frequent opportunities to observe Earth and communicate with ground stations. It offers a useful balance between observation opportunities and sunlight exposure.",
+      'A lower-altitude option with frequent modeled contact opportunities, but not the wildfire mission orbit.',
   },
   {
-    id: "mid-earth-orbit",
-    name: "Medium Earth Orbit (MEO)",
-    altitudeKm: 8000,
-    inclinationDeg: 45,
-    periodMinutes: 288,
-    sunlightFraction: 0.65,
-    contactModifier: 0.9,
-    scienceModifier: 0.85,
+    id: 'orbit.sun-synchronous-550km.v1',
+    name: '550 km Sun-Synchronous-Style Orbit',
+    altitudeKm: 550,
+    inclinationDeg: 97.6,
+    periodMinutes: 96,
+    sunlightFraction: 0.62,
+    contactModifier: 1.0,
+    scienceModifier: 1.15,
     description:
-      "A higher orbit provides a wider view of Earth but changes ground coverage and communication opportunities. It offers a different balance of coverage and observation effectiveness.",
+      'A simplified near-polar Earth-observation option that matches the wildfire mission altitude and inclination envelope.',
   },
   {
-    id: "high-earth-orbit",
-    name: "High Earth Orbit",
-    altitudeKm: 20000,
+    id: 'orbit.high-coverage-meo.v1',
+    name: 'High-Coverage Medium Earth Orbit',
+    altitudeKm: 8_000,
     inclinationDeg: 30,
     periodMinutes: 760,
     sunlightFraction: 0.7,
     contactModifier: 0.7,
     scienceModifier: 0.7,
     description:
-      "A much higher orbit provides a broad view of Earth but changes observation opportunities and ground-station contact patterns.",
+      'A higher-altitude gameplay option with broader modeled coverage but weaker contact and science modifiers.',
   },
-];
-
-// All modifiers and sunlight fractions are simplified gameplay assumptions.
-// Orbit values are illustrative and are not precise mission predictions.
+] satisfies readonly OrbitOption[]
