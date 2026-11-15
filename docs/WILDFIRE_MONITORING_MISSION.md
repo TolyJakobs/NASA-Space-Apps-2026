@@ -1,8 +1,9 @@
 # Wildfire Monitoring Mission Specification
 
 **Issue:** #12 (`M2-01`)  
-**Status:** Gameplay specification for the single-player MVP  
-**Scope:** One deterministic Earth-observation satellite mission; no shared interfaces or simulation code are defined here.
+**Status:** Typed mission data is exported from `src/data/missions.ts`
+
+**Scope:** One deterministic Earth-observation satellite mission; no simulation code is defined here.
 
 ## Mission scenario and player objective
 
@@ -72,9 +73,9 @@ This reference is a balance target for future catalog authors, not a real spacec
 
 **Failure:** The player attempts to evaluate or launch a configuration with one or more hard-constraint failures. The result must list every failed rule in beginner-friendly language, for example: “Data downlink is 40 MB/day short” or “Total mass exceeds the 150 kg limit by 8 kg.” A failure is not random and does not end the game permanently; the player can adjust the design and retry.
 
-## Future `MissionDefinition` integration boundary
+## Implemented `MissionDefinition` boundary
 
-M1-03 owns the shared domain contract. Until it is merged and agreed, this specification is intentionally **not** a TypeScript interface and does not establish field names.
+`wildfireMonitoringMission` uses `MissionDefinition` with stable mission, component, orbit, and launch IDs. The shared contract now includes `scienceTags`, `budgetUsd`, and `targetScienceDataMbPerDay` so later M3–M6 work can import the stated objective instead of parsing this document.
 
 When integrating this mission into the agreed `MissionDefinition`, it will need equivalent concepts for these mission inputs:
 
@@ -91,7 +92,7 @@ Given a player's selected components, launch option, and orbit, the future engin
 - Calculated mission totals for mass, power, battery/eclipse energy, generated data, downlink, and cost.
 - A deterministic score breakdown for the scoring goals.
 
-The final mapping of these concepts to `MissionDefinition`, component catalogs, launch definitions, and engine result types is blocked on M1-03. This document must be reviewed against that contract when it merges; it does not authorize adding unsupported fields or duplicate shared interfaces now.
+This document remains the explanation of gameplay intent. It does not add engine behavior, orbital propagation, or scoring calculations.
 
 ## MVP boundaries
 
