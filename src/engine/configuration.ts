@@ -54,3 +54,35 @@ export function selectLaunch(
         selectedLaunchOptionId: launchId
     };
 }
+
+/**
+ * M3-05: Reset mission configuration to its default state.
+ *
+ * Reuses the M3-01 default configuration factory.
+ * Does not hardcode any mission, component, orbit or launch IDs.
+ *
+ * Always returns:
+ * - A new MissionConfiguration object.
+ * - A new selectedComponentIds array.
+ * - The original default selections.
+ *
+ * Does not modify existing configurations.
+ */
+
+export type DefaultConfigurationFactory =
+    () => MissionConfiguration;
+
+export function resetConfiguration(
+    createDefaultConfiguration: DefaultConfigurationFactory
+): MissionConfiguration {
+
+    // Generate the original default configuration.
+    const defaults = createDefaultConfiguration();
+
+    // Return a fresh configuration and component array.
+    return {
+        ...defaults,
+        selectedComponentIds: [...defaults.selectedComponentIds]
+    };
+}
+
