@@ -1,0 +1,110 @@
+
+import type { MissionConfiguration } from '../domain/types'
+
+import { wildfireMonitoringMission } from '../data/missions'
+import { scientificInstruments } from '../data/instruments'
+import { solarPanels } from '../data/solarPanels'
+import { batteries } from '../data/batteries'
+import { communications } from '../data/communications'
+import { orbits } from '../data/orbits'
+import { launches } from '../data/launches'
+
+/**
+ * Default configuration for the single-player wildfire-monitoring mission.
+ *
+ * The selected components meet the illustrative mission data target,
+ * fit within the shared rideshare payload limit, and remain within budget.
+ */
+export const DEFAULT_MISSION_CONFIGURATION: Readonly<MissionConfiguration> = {
+  missionId: wildfireMonitoringMission.id,
+  selectedComponentIds: [
+    'instrument.optical-earth-observation-camera.v1',
+    'instrument.thermal-infrared-sensor.v1',
+    'solar-panel.high-output-array.v1',
+    'large-battery',
+    'communications.high-capacity-x-band.v1',
+  ],
+  selectedOrbitId: 'orbit.sun-synchronous-550km.v1',
+  selectedLaunchOptionId: 'launch.shared-rideshare.v1',
+}
+
+/**
+ * Return a fresh configuration so callers cannot mutate the shared default.
+ */
+export function createDefaultMissionConfiguration(): MissionConfiguration {
+  return {
+    ...DEFAULT_MISSION_CONFIGURATION,
+    selectedComponentIds: [
+      ...DEFAULT_MISSION_CONFIGURATION.selectedComponentIds,
+    ],
+  }
+}
+
+/**
+ * Check that a configuration refers only to items available for the mission
+ * and that the selected launch supports the selected orbit.
+ */
+export function isMissionConfigurationValid(
+  configuration: MissionConfiguration,
+): boolean {
+  const mission = wildfireMonitoringMission
+
+  if (configuration.missionId !== mission.id) {
+    return false
+  }
+
+  if (!mission.orbitIds.includes(configuration.selectedOrbitId)) {
+    return false
+  }
+
+  if (!mission.launchOptionIds.includes(configuration.selectedLaunchOptionId)) {
+    return false
+  }
+
+  const orbitExists = orbits.some(
+    (orbit) => orbit.id === configuration.selectedOrbitId,
+  )
+
+  const launch = launches.find(
+    (option) => option.id === configuration.selectedLaunchOptionId,
+  )
+
+  if (!orbitExists || !launch) {
+    return false
+  }
+
+  if (!launch.supportedOrbitIds.includes(configuration.selectedOrbitId)) {
+    return false
+  }
+
+  const availableComponentIds = new Set([
+    ...scientificInstruments.map((component) => component.id),
+    ...solarPanels.map((component) => component.id),
+    ...batteries.map((component) => component.id),
+    ...communications.map((component) => component.id),
+  ])
+
+  return configuration.selectedComponentIds.every(
+    (id) => mission.componentIds.includes(id) && availableComponentIds.has(id),
+  )
+}
+
+/**
+ * Safely initialize a mission configuration.
+ * Invalid or missing saved configurations fall back to the default.
+ */
+export function initializeMissionConfiguration(
+  savedConfiguration?: MissionConfiguration | null,
+): MissionConfiguration {
+  if (
+    savedConfiguration &&
+    isMissionConfigurationValid(savedConfiguration)
+  ) {
+    return {
+      ...savedConfiguration,
+      selectedComponentIds: [...savedConfiguration.selectedComponentIds],
+    }
+  }
+
+  return createDefaultMissionConfiguration()
+}
