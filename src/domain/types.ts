@@ -23,10 +23,28 @@ export interface SolarPanel extends Component {
   powerGenerationW: number; // Nominal power generated in watts (W), not stored energy in Wh.
 }
 
+/** A component that stores electrical energy for later use. */
+export interface Battery extends Component {
+  type: 'battery';
+  capacityWh: number; // Stored electrical energy in watt-hours (Wh), not power in W.
+  costUsd: number; // Cost in USD.
+}
+
+/** Equipment that consumes power while returning spacecraft data to the ground. */
+export interface CommunicationEquipment extends Component {
+  type: 'communications';
+  costUsd: number; // Cost in USD.
+  powerConsumptionW: number; // Active power consumed in watts (W).
+  downlinkMbPerDay: number; // Simplified daily downlink capacity in MB/day.
+}
+
 export interface MissionDefinition {
   id: string; // Required: mission ID.
   name: string; // Required: mission name.
   description?: string; // Optional mission description.
+  scienceTags: string[]; // Science categories required by the mission.
+  budgetUsd: number; // Maximum gameplay budget in USD.
+  targetScienceDataMbPerDay: number; // Required daily science data in MB/day.
   componentIds: string[]; // IDs of available components.
   orbitIds: string[]; // IDs of available orbits.
   launchOptionIds: string[]; // IDs of launch options.
@@ -51,8 +69,10 @@ export interface LaunchOption {
   id: string;
   name: string;
   vehicleName: string;
+  description: string;
   maxPayloadKg: number; // Maximum payload mass in kilograms.
-  cost?: number; // Optional cost; currency must be agreed upon.
+  costUsd: number; // Illustrative launch cost in USD.
+  supportedOrbitIds: string[]; // Orbit option IDs supported by this launch option.
 }
 
 export interface MissionConfiguration {
