@@ -1,55 +1,56 @@
 import type { MissionConfiguration } from "../domain/types";
-
 /**
- * Select a new orbit.
+ * Updates the selected orbit.
  *
  * @param config - Current mission configuration.
- * @param orbitId - ID of the orbit to select.
- * @param validOrbitIds - IDs that may be selected.
- * @returns A new mission configuration.
- * @throws RangeError if the orbit ID is invalid.
+ * @param orbitId - ID of the requested orbit.
+ * @param allowedOrbitIds - Orbit IDs permitted for selection.
+ * @returns New mission configuration with the selected orbit.
+ * @throws RangeError when the orbit ID is not allowed.
  */
 export function selectOrbit(
     config: MissionConfiguration,
     orbitId: string,
-    validOrbitIds: readonly string[]
+    allowedOrbitIds: readonly string[]
 ): MissionConfiguration {
 
-    // Check whether the requested orbit is allowed.
-    if (!validOrbitIds.includes(orbitId)) {
+    // Validate the requested orbit ID.
+    if (!allowedOrbitIds.includes(orbitId)) {
         throw new RangeError(`Invalid orbit ID: ${orbitId}`);
     }
 
-    // Copy the existing configuration and replace only the orbit.
+    // Return a new configuration without modifying the original.
     return {
         ...config,
+        selectedComponentIds: [...config.selectedComponentIds],
         selectedOrbitId: orbitId
     };
 }
 
 /**
- * Select a new launch option.
+ * Updates the selected launch option.
  *
  * @param config - Current mission configuration.
- * @param launchId - ID of the launch option to select.
- * @param validLaunchIds - IDs that may be selected.
- * @returns A new mission configuration.
- * @throws RangeError if the launch ID is invalid.
+ * @param launchId - ID of the requested launch option.
+ * @param allowedLaunchIds - Launch IDs permitted for selection.
+ * @returns New mission configuration with the selected launch.
+ * @throws RangeError when the launch ID is not allowed.
  */
 export function selectLaunch(
     config: MissionConfiguration,
     launchId: string,
-    validLaunchIds: readonly string[]
+    allowedLaunchIds: readonly string[]
 ): MissionConfiguration {
 
-    // Check whether the requested launch is allowed.
-    if (!validLaunchIds.includes(launchId)) {
+    // Validate the requested launch ID.
+    if (!allowedLaunchIds.includes(launchId)) {
         throw new RangeError(`Invalid launch ID: ${launchId}`);
     }
 
-    // Copy the existing configuration and replace only the launch.
+    // Return a new configuration without modifying the original.
     return {
         ...config,
+        selectedComponentIds: [...config.selectedComponentIds],
         selectedLaunchOptionId: launchId
     };
 }
