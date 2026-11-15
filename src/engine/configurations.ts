@@ -1,4 +1,3 @@
-
 import type { MissionConfiguration } from '../domain/types'
 
 import { wildfireMonitoringMission } from '../data/missions'
@@ -10,10 +9,7 @@ import { orbits } from '../data/orbits'
 import { launches } from '../data/launches'
 
 /**
- * Default configuration for the single-player wildfire-monitoring mission.
- *
- * The selected components meet the illustrative mission data target,
- * fit within the shared rideshare payload limit, and remain within budget.
+ * Default single-player configuration for the wildfire-monitoring mission.
  */
 export const DEFAULT_MISSION_CONFIGURATION: Readonly<MissionConfiguration> = {
   missionId: wildfireMonitoringMission.id,
@@ -24,12 +20,12 @@ export const DEFAULT_MISSION_CONFIGURATION: Readonly<MissionConfiguration> = {
     'large-battery',
     'communications.high-capacity-x-band.v1',
   ],
-  selectedOrbitId: 'orbit.sun-synchronous-550km.v1',
+  selectedOrbitId: 'low-earth-orbit',
   selectedLaunchOptionId: 'launch.shared-rideshare.v1',
 }
 
 /**
- * Return a fresh configuration so callers cannot mutate the shared default.
+ * Returns a fresh copy of the default configuration.
  */
 export function createDefaultMissionConfiguration(): MissionConfiguration {
   return {
@@ -41,17 +37,37 @@ export function createDefaultMissionConfiguration(): MissionConfiguration {
 }
 
 /**
- * Check that a configuration refers only to items available for the mission
- * and that the selected launch supports the selected orbit.
+ * Checks whether an unknown saved value is a valid mission configuration.
  */
 export function isMissionConfigurationValid(
-  configuration: MissionConfiguration,
-): boolean {
-  const mission = wildfireMonitoringMission
-
-  if (configuration.missionId !== mission.id) {
+  value: unknown,
+): value is MissionConfiguration {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
     return false
   }
+
+  const configuration = value as Partial<MissionConfiguration>
+
+  if (
+    typeof configuration.missionId !== 'string' ||
+    typeof configuration.selectedOrbitId !== 'string' ||
+    typeof configuration.selectedLaunchOptionId !== 'string' ||
+    !Array.isArray(configuration.selectedComponentIds)
+  ) {
+    return false
+  }
+
+  const selectedComponentIds: unknown[] = Array.from(
+    configuration.selectedComponentIds,
+  )
+
+  if (!selectedComponentIds.every((id) => typeof id === 'string')) {
+    return false
+  }
+
+  const mission = wildfireMonitoringMission
+
+  if (configuration.missionId !== mission.id) return false
 
   if (!mission.orbitIds.includes(configuration.selectedOrbitId)) {
     return false
@@ -65,17 +81,13 @@ export function isMissionConfigurationValid(
     (orbit) => orbit.id === configuration.selectedOrbitId,
   )
 
-  const launch = launches.find(
-    (option) => option.id === configuration.selectedLaunchOptionId,
+  if (!orbitExists) return false
+
+  const launchExists = launches.some(
+    (launch) => launch.id === configuration.selectedLaunchOptionId,
   )
 
-  if (!orbitExists || !launch) {
-    return false
-  }
-
-  if (!launch.supportedOrbitIds.includes(configuration.selectedOrbitId)) {
-    return false
-  }
+  if (!launchExists) return false
 
   const availableComponentIds = new Set([
     ...scientificInstruments.map((component) => component.id),
@@ -84,22 +96,21 @@ export function isMissionConfigurationValid(
     ...communications.map((component) => component.id),
   ])
 
-  return configuration.selectedComponentIds.every(
-    (id) => mission.componentIds.includes(id) && availableComponentIds.has(id),
+  return selectedComponentIds.every(
+    (id) =>
+      mission.componentIds.includes(id as string) &&
+      availableComponentIds.has(id as string),
   )
 }
 
 /**
- * Safely initialize a mission configuration.
- * Invalid or missing saved configurations fall back to the default.
+ * Initializes a configuration from saved data.
+ * Invalid or missing saved data falls back to the default.
  */
 export function initializeMissionConfiguration(
-  savedConfiguration?: MissionConfiguration | null,
+  savedConfiguration?: unknown,
 ): MissionConfiguration {
-  if (
-    savedConfiguration &&
-    isMissionConfigurationValid(savedConfiguration)
-  ) {
+  if (isMissionConfigurationValid(savedConfiguration)) {
     return {
       ...savedConfiguration,
       selectedComponentIds: [...savedConfiguration.selectedComponentIds],
