@@ -77,6 +77,7 @@ export interface LaunchOption {
 
 export interface MissionConfiguration {
   missionId: string;
+  // Each ID must resolve to a catalog component; repeated IDs represent multiple copies.
   selectedComponentIds: string[];
   selectedOrbitId: string;
   selectedLaunchOptionId: string;
